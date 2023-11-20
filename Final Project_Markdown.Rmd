@@ -52,3 +52,26 @@ ggplot(data=data)+geom_bar(mapping=aes(x=Target))
 ```
 
 ## 
+
+Build function to graph distribution of feature by target
+
+```{r}
+FeatureVsTarget = function(feature,name){
+  print(ggplot(data=data)+
+          geom_boxplot(mapping=aes(x=reorder(Target,feature,FUN=median),y=feature))+xlab("Target")+ylab(name))
+}
+```
+
+```{r}
+FeatureVsTarget(Admission.grade)
+```
+
+Plot Features
+
+```{r}
+data_col <- colnames(data)
+for(i in 1:ncol(data)){
+  FeatureVsTarget(data[,i], data_col[i])
+}
+
+```
