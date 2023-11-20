@@ -9,6 +9,11 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r}
+library(dplyr)
+library(ggplot2)
+```
+
 ## Project Data Source
 
 <https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success>
@@ -19,16 +24,21 @@ Features: 36
 
 Goal: Classify Students into 3 categories: Dropout, Enrolled, and Graduate
 
-```{r cars}
-summary(cars)
+## Data Exploration
+
+Import Data
+
+```{r}
+data <- read.csv("data.csv",sep=";")
+attach(data)
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+head(data)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+ggplot(data=data)+geom_bar(mapping=aes(x=Target))
+```
+
+## 
