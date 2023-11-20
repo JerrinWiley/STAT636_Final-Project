@@ -24,7 +24,7 @@ Features: 36
 
 Goal: Classify Students into 3 categories: Dropout, Enrolled, and Graduate
 
-## Data Exploration
+## Data Import
 
 Import Data
 
@@ -36,6 +36,16 @@ attach(data)
 ```{r}
 head(data)
 ```
+
+Check for Missing Values
+
+```{r}
+which(is.na(data))
+```
+
+No line is missing data
+
+## Data Exploration
 
 ```{r}
 ggplot(data=data)+geom_bar(mapping=aes(x=Target))
