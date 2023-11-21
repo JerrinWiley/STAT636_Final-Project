@@ -11,7 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(dplyr)
-library(ggplot2)
+library(ggplot2) #Plots for visualization
+library(glmnet)
+library(corrplot) #Correlation Heatmap
+library(pROC) #Roc Curve
 ```
 
 ## Project Data Source
@@ -45,13 +48,18 @@ which(is.na(data))
 
 No line is missing data
 
+Convert Target values to numerical values. Dropout = 1, Enrolled = 2, Graduate = 3
+
+```{r}
+model_data <- data
+model_data$Target <- as.numeric(factor(Target))
+```
+
 ## Data Exploration
 
 ```{r}
 ggplot(data=data)+geom_bar(mapping=aes(x=Target))
 ```
-
-## 
 
 Build function to graph distribution of feature by target
 
@@ -73,5 +81,47 @@ data_col <- colnames(data)
 for(i in 1:ncol(data)){
   FeatureVsTarget(data[,i], data_col[i])
 }
+```
 
+```{r}
+out.width="300%"
+```
+
+```{r fig.height=15, fig.width=15}
+correlations <- cor(data[,-37])
+print(corrplot(correlations))
+```
+
+## Data Split
+
+70% train, 30% split (Will not be used for feature selection, k-fold cross-validation will be)
+
+```{r}
+sample <- sample(c(TRUE,FALSE),nrow(data),replace=TRUE,prob=c(0.7,0.3))
+train <- data[sample,]
+test <- data[!sample,]
+```
+
+## Feature Selection
+
+```{r}
+y <- model_data$Target
+x <- data.matrix(subset(model_data,select=-Target))
+```
+
+```{r}
+cv.lambda.lasso <- cv.glmnet(x,y,alpha=1)
+plot(cv.lambda.lasso)
+```
+
+```{r}
+cv.lambda.lasso
+```
+
+```{r}
+plot(cv.lambda.lasso$glmnet.fit,"lambda",label=FALSE)
+```
+
+```{r}
+model$lambda
 ```
