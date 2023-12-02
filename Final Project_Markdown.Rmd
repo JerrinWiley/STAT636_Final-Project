@@ -114,6 +114,8 @@ test <- data[!sample,]
 Considering dropping highly correlated variable to counteract their possible dependent relationship. First, find correlations over 0.85 within X
 
 ```{r fig.height=5, fig.width=5}
+
+x <- all_numVar
 data_cor <- cor(x)
 
 #Create function to find correlations over 0.85
@@ -170,9 +172,82 @@ dropFeatures <- c("Mother.s.occupation","Father.s.occupation","Curricular.units.
 model_data <- model_data[,!names(model_data) %in% dropFeatures]
 ```
 
-## Feature Selection
+## Feature Selection - LASSO model
+For the Lasso model, we will use the `glmnet` package. The model will be trained on the training set and evaluated on the test set.
 
 ```{r}
-set.seed(1217)
+# Lasso Model Fitting
+
+# Preparing the data for the Lasso model: matrix format is required for glmn
+
+X_train <- model.matrix(~ . - 1, data = train[, -which(colnames(train) == "Target")]) 
+Y_train <- train$Target
+
+# Fit the Lasso model using cross-validation 
+set.seed(1217) #for reproducibility
+cv_model <- cv.glmnet(X_train, Y_train, family = "multinomial", type.multinomial = "grouped")
+
+# Determine the best lambda (regularization parameter)
+best_lambda <- cv_model$lambda.min
+
+# Fit the final model on the training data using the best lambda
+final_model <- glmnet(X_train, Y_train, family = "multinomial", lambda = best_lambda, type.multinomial = "grouped")
+
+# View the model coefficients
+coef(final_model, s = best_lambda)
 
 ```
+Testing the LASSO model
+```{r}
+# Preparing the test data in matrix format
+X_test <- model.matrix(~ . - 1, data = test[, -which(colnames(test) == "Target")]) 
+Y_test <- test$Target
+
+# Making predictions on the test data
+predictions <- predict(final_model, newx = X_test, s = best_lambda, type = "response")
+
+# Converting predictions to the same format as 'Y_test' for comparison
+predicted_classes <- apply(predictions, 1, which.max)
+
+# Evaluate the model performance
+confusion_matrix <- table(Predicted = predicted_classes, Actual = Y_test)
+print(confusion_matrix)
+
+# Calculating overall accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+cat("Accuracy: ", accuracy)
+
+```
+## Support Vector Machine (SVM) model
+
+```{r}
+# Convert target variable to a facor
+train$Target <- as.factor(train$Target) 
+
+# Fitting SVM to the training data
+# Using radial basis kernel (can use others like linear, polynomial)
+#for reproducibility
+set.seed(1217)
+svm_model <- svm(Target ~ ., data = train, method = "C-classification", kernel = "radial")
+
+# Summary of the model
+summary(svm_model)
+```
+Testing the SVM
+
+```{r}
+# Making predictions on the test data
+svm_predictions <- predict(svm_model, newdata = test)
+
+#Convert predictions to factor
+svm_predictions <- factor(svm_predictions, levels = levels(train$Target))
+
+#Ensure test target is a factor w/ same levels
+test$Target <- factor(test$Target, levels = levels(train$Target))
+
+svm_predictions <- predict(svm_model, newdata = test)
+
+# Confusion Matrix to evaluate performance
+confusionMatrix(svm_predictions, test$Target)
+```
+
