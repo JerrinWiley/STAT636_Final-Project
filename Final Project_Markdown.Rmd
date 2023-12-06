@@ -6,7 +6,7 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE,warning = FALSE, message = FALSE)
 ```
 
 ```{r}
@@ -39,7 +39,8 @@ attach(data)
 ```
 
 ```{r}
-head(data)
+# Suppressed for pdf output
+#head(data)
 ```
 
 Check for Missing Values
@@ -59,7 +60,7 @@ model_data$Target <- as.numeric(factor(Target))
 
 ## Data Exploration
 
-```{r}
+```{r fig.height=3, fig.width=3}
 ggplot(data=data)+geom_bar(mapping=aes(x=Target))
 ```
 
@@ -74,11 +75,14 @@ FeatureVsTarget = function(feature,name){
 
 Plot Features
 
-```{r}
-data_col <- colnames(model_data)
-for(i in 1:ncol(model_data)){
-  FeatureVsTarget(model_data[,i], data_col[i])
-}
+```{r fig.height=3, fig.width=3}
+
+# Suppressed for pdf output. These plots were used to explore data relationships
+
+#data_col <- colnames(model_data)
+#for(i in 1:ncol(model_data)){
+#  FeatureVsTarget(model_data[,i], data_col[i])
+#}
 ```
 
 ```{r}
@@ -115,7 +119,7 @@ test <- data[!sample,]
 
 Considering dropping highly correlated variable to counteract their possible dependent relationship. First, find correlations over 0.85 within X
 
-```{r fig.height=5, fig.width=5}
+```{r}
 
 x <- all_numVar
 data_cor <- cor(x)
@@ -205,7 +209,8 @@ best_lambda <- cv_model$lambda.min
 final_model <- glmnet(X_train, Y_train, family = "multinomial", lambda = best_lambda, type.multinomial = "grouped")
 
 # View the model coefficients
-coef(final_model, s = best_lambda)
+# Suppressed for pdf output
+#coef(final_model, s = best_lambda)
 
 plot(cv_model)
 ```
@@ -298,3 +303,5 @@ svm_predictions <- predict(svm_model, newdata = test)
 # Confusion Matrix to evaluate performance
 confusionMatrix(svm_predictions, test$Target)
 ```
+
+The method using SVM with the data set that removed attributes that were highly correlated with each other. This was done to prevent those features from having undue weight on the model.
